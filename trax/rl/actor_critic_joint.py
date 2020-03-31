@@ -22,12 +22,18 @@ from trax import layers as tl
 from trax import lr_schedules as lr
 from trax import supervised
 from trax.math import numpy as jnp
-from trax.rl import distributions
 from trax.rl import training as rl_training
 
 
-class ActorCriticJointTrainer(rl_training.RLTrainer):
-  """Trains a joint policy-and-value model using actor-critic methods."""
+class ActorCriticJointTrainer(rl_training.PolicyTrainer):
+  """Trains a joint policy-and-value model using actor-critic methods.
+
+  Attrs:
+    on_policy (bool): Whether the algorithm is on-policy. Used in the data
+      generators. Should be set in derived classes.
+  """
+
+  on_policy = None
 
   def __init__(self, task, joint_model=None,
                optimizer=None, lr_schedule=lr.MultifactorSchedule,
@@ -52,7 +58,6 @@ class ActorCriticJointTrainer(rl_training.RLTrainer):
     self._train_steps_per_epoch = train_steps_per_epoch
     self._collect_per_epoch = collect_per_epoch
     self._max_slice_length = max_slice_length
-    self._policy_dist = distributions.create_distribution(task.env.action_space)
 
     # Inputs to the joint model are produced by self.batches_stream.
     self._inputs = supervised.Inputs(
